@@ -19,6 +19,13 @@ static vsomeip::service_t service_id = 0x00F0;
 static vsomeip::instance_t service_instance_id = 0x0001;
 static vsomeip::method_t service_method_id = 0x8001;
 
+
+#define SAMPLE_EVENT_ID         0x8778
+#define SAMPLE_GET_METHOD_ID    0x0001
+#define SAMPLE_SET_METHOD_ID    0x0002
+
+#define SAMPLE_EVENTGROUP_ID    0x4465
+
 class hello_world_service {
 public:
     // Get the vSomeIP runtime and
@@ -57,6 +64,17 @@ public:
         app_->register_state_handler(
                 std::bind(&hello_world_service::on_state_cbk, this,
                         std::placeholders::_1));
+
+        std::set<vsomeip::eventgroup_t> its_groups;
+        its_groups.insert(SAMPLE_EVENTGROUP_ID);
+        app_->offer_event(
+                service_id,
+                service_instance_id,
+                SAMPLE_EVENT_ID,
+                its_groups,
+                vsomeip::event_type_e::ET_FIELD, std::chrono::milliseconds::zero(),
+                false, true, nullptr, vsomeip::reliability_type_e::RT_UNKNOWN);
+        LOG_INF("offer_event finish =======\n");                        
         return true;
     }
 
@@ -122,6 +140,10 @@ public:
 
         // Send the response back
         app_->send(resp);
+
+        app_->notify(service_id, service_instance_id,
+                     SAMPLE_EVENT_ID, resp_pl);
+        LOG_INF("notify =======\n");                     
         // we have finished
         terminate();
     }

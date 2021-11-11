@@ -17,6 +17,12 @@ static vsomeip::service_t service_id = 0x00F0;
 static vsomeip::instance_t service_instance_id = 0x0001;
 static vsomeip::method_t service_method_id = 0x8001;
 
+#define SAMPLE_EVENT_ID         0x8778
+#define SAMPLE_GET_METHOD_ID    0x0001
+#define SAMPLE_SET_METHOD_ID    0x0002
+
+#define SAMPLE_EVENTGROUP_ID    0x4465
+
 class hello_world_client {
 
 private:
@@ -58,6 +64,16 @@ public:
                 std::bind(&hello_world_client::on_availability_cbk, this,
                         std::placeholders::_1, std::placeholders::_2,
                         std::placeholders::_3));
+
+    std::set<vsomeip::eventgroup_t> its_groups;
+        its_groups.insert(SAMPLE_EVENTGROUP_ID);
+        app_->request_event(
+                service_id,
+                service_instance_id,
+                SAMPLE_EVENT_ID,
+                its_groups,
+                vsomeip::event_type_e::ET_FIELD);
+        app_->subscribe(service_id, service_instance_id, SAMPLE_EVENTGROUP_ID);
         return true;
     }
 
@@ -120,6 +136,12 @@ public:
             std::string recv_info((char*)pl->get_data());
             LOG_INF("Receive: %s", recv_info.c_str());
 
+        }
+        else if (vsomeip::message_type_e::MT_NOTIFICATION == _response->get_message_type()) {
+            LOG_INF("Notify \n");
+        }
+        else {
+            LOG_INF("Type is 0x%02x \n", (int32_t)_response->get_message_type());
         }
     }    
 
