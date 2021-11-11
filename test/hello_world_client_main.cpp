@@ -103,7 +103,7 @@ public:
         {
             // The service is available then we send the request
             // Create a new request
-            std::shared_ptr<vsomeip::message> rq = rtm_->create_request();
+            std::shared_ptr<vsomeip::message> rq = rtm_->create_request(true);
             // Set the hello world service as target of the request
             rq->set_service(service_id);
             rq->set_instance(service_instance_id);
@@ -138,7 +138,9 @@ public:
 
         }
         else if (vsomeip::message_type_e::MT_NOTIFICATION == _response->get_message_type()) {
-            LOG_INF("Notify \n");
+            std::shared_ptr<vsomeip::payload> pl = _response->get_payload();
+            std::string recv_info((char*)pl->get_data());
+            LOG_INF("Notify: %s", recv_info.c_str());
         }
         else {
             LOG_INF("Type is 0x%02x \n", (int32_t)_response->get_message_type());
